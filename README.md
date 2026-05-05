@@ -64,7 +64,7 @@ Learn step-by-step:
 🚗 A car moves forward as you complete each level.
 
 ---
-
+![Tutorial Level](https://github.com/AmitTamas/mathsTilesv1/blob/773f6757d83a46e94335ee458cbb4f85e2ea74a8/Screenshot%20From%202026-05-05%2015-24-22.png)
 ### 🗺️ 2. World Map
 
 * Animated **driving car**
@@ -83,13 +83,17 @@ Special nodes:
 * ⏱️ Timed
 
 ---
-
+![Map Page](https://github.com/AmitTamas/mathsTilesv1/blob/773f6757d83a46e94335ee458cbb4f85e2ea74a8/Screenshot%20From%202026-05-05%2015-23-06.png)
 ### 🧩 3. Puzzle Levels (Main Game)
 
 * Cross-grid equations
 * Increasing complexity
 * Timer + lives system
 * Star-based scoring
+
+![Main Game Window](https://github.com/AmitTamas/mathsTilesv1/blob/773f6757d83a46e94335ee458cbb4f85e2ea74a8/Screenshot%20From%202026-05-05%2015-23-20.png)
+![Pause screen](https://github.com/AmitTamas/mathsTilesv1/blob/773f6757d83a46e94335ee458cbb4f85e2ea74a8/Screenshot%20From%202026-05-05%2015-24-08.png)
+![Settings pannel](https://github.com/AmitTamas/mathsTilesv1/blob/773f6757d83a46e94335ee458cbb4f85e2ea74a8/Screenshot%20From%202026-05-05%2015-24-22.png)
 
 ---
 
@@ -265,6 +269,13 @@ http://localhost:8080
 * Modular structure for easy expansion (new levels, mechanics)
 
 ---
+
+## Special Thanks to
+
+* chat-gpt to make things faster and understand the ideas i has
+* claude to make the best optimized code to turn my ideas into playable world
+
+* ---
 
 ## 📝 License
 
