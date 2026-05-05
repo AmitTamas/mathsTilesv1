@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tile Logic – Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="design/style.css">
+</head>
+<!-- ══════════════════════════════════════════════════
+     STEP 1 — Replace your <body> opening + blobs section with this
+     ══════════════════════════════════════════════════ -->
+
+<body>
+
+<!-- Floating background blobs -->
+<div class="bg-blob blob1"></div>
+<div class="bg-blob blob2"></div>
+<div class="bg-blob blob3"></div>
+
+<!-- ✨ Floating sparkle emojis (auto-injected by JS below) -->
+<div id="sparkleContainer"></div>
+
+<!-- Skip Button -->
+<button id="skipBtn" class="skip-btn">Skip Tutorial →</button>
+
+<!-- ══════════════════════════════════════════════════
+     STEP 2 — Add this GAME HEADER block right after the skip button
+     and BEFORE the progress-wrap div
+     ══════════════════════════════════════════════════ -->
+
+<!-- 🎮 GAME TITLE HEADER -->
+<header class="game-header">
+  <!-- Bobbing mascot emoji — swap for your own character! -->
+  <div class="mascot-bubble" title="Click me!">🧩</div>
+
+  <!-- Animated letter-by-letter title -->
+  <div class="title-wordmark" aria-label="Tile Logic">
+    <span class="title-letter">T</span>
+    <span class="title-letter">i</span>
+    <span class="title-letter">l</span>
+    <span class="title-letter">e</span>
+    <span class="title-letter"> </span><!-- space -->
+    <span class="title-letter">L</span>
+    <span class="title-letter">o</span>
+    <span class="title-letter">g</span>
+    <span class="title-letter">i</span>
+    <span class="title-letter">c</span>
+    <span class="title-letter">!</span>
+  </div>
+
+  <p class="title-tagline">🌟 Place the tiles · Solve the puzzle · Win! 🌟</p>
+
+  <!-- Decorative animated stars row -->
+  <div class="title-stars" aria-hidden="true">
+    <span class="title-star">⭐</span>
+    <span class="title-star">🌟</span>
+    <span class="title-star">✨</span>
+    <span class="title-star">🌟</span>
+    <span class="title-star">⭐</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════
+     STEP 3 — Update progress-wrap to include the label
+     ══════════════════════════════════════════════════ -->
+
+<!-- Progress Road -->
+<div class="progress-wrap">
+  <p class="progress-label">Your Journey</p>
+  <canvas id="roadProgress" height="110"></canvas>
+  <img id="carImage" class="car-img" alt="car" />
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     STEP 4 — Game UI (unchanged, just shown for reference)
+     ══════════════════════════════════════════════════ -->
+
+<div class="game" id="gameWrap">
+  <h1 id="levelTitle" class="level-title">Level 1</h1>
+  <div id="board"></div>
+  <div class="tiles" id="tiles"></div>
+  <button id="checkBtn" class="check-btn">Check ✓</button>
+  <p id="message"></p>
+</div>
+
+<!-- Tutorial Complete Overlay (unchanged) -->
+<div id="completeScreen" class="completeScreen hidden">
+  <canvas id="confettiCanvas"></canvas>
+  <div class="completeCard">
+    <div class="complete-trophy">🏆</div>
+    <h2>You're Amazing!</h2>
+    <p>Tutorial complete!</p>
+    <p>The real adventure awaits you.</p>
+    <button id="startRealGameBtn" class="real-game-btn">Start Real Game →</button>
+  </div>
+</div>
+
+
+<script>
+  /* ── Floating sparkle background ── */
+  (function spawnSparkles() {
+    const emojis = ['✨','⭐','🌟','💫','🎯','🎲','🎮','🌈'];
+    const container = document.getElementById('sparkleContainer');
+    const COUNT = 14;
+
+    for (let i = 0; i < COUNT; i++) {
+      const el = document.createElement('div');
+      el.className = 'sparkle';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        animation-duration: ${7 + Math.random() * 10}s;
+        animation-delay: ${-Math.random() * 12}s;
+        font-size: ${16 + Math.random() * 16}px;
+        opacity: ${0.3 + Math.random() * 0.35};
+      `;
+      container.appendChild(el);
+    }
+  })();
+
+  /* ── Mascot click spin ── */
+  document.querySelector('.mascot-bubble')?.addEventListener('click', function() {
+    this.style.animation = 'none';
+    void this.offsetWidth; // reflow
+    this.style.animation = 'mascotSpin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    setTimeout(() => { this.style.animation = 'mascotBob 2.4s ease-in-out infinite'; }, 700);
+  });
+
+  /* ── Check button pulses when all slots are filled ──
+     Add this watcher in your existing script if you want the pulse effect.
+     Call  checkBtn.classList.add('ready')   when all slots filled
+     Call  checkBtn.classList.remove('ready') when check is pressed        */
+</script>
+
+<script type="module" src="mechanics/levels.js"></script>
+<script type="module" src="mechanics/script.js"></script>
+
+</body>
+</html>

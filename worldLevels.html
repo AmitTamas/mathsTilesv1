@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Tower - World Levels</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="design/worldLevels.css">
+  <script type="module" src="./mechanics/settingsPannel.js"></script>
+</head>
+<body>
+<div class="gameScreen">
+
+    <settings-panel></settings-panel> 
+  <header class="topBar">
+    <button class="iconBtn" id="backBtn">⬅</button>
+    <div class="levelInfo">
+      <h1 id="levelTitle">Level 1</h1>
+      <p id="levelType">Addition</p>
+    </div>
+    <button class="mainBtn alt" id="hintBtn">Hint</button>
+    <button class="iconBtn" id="pauseBtn">⏸</button>         
+  </header>
+
+  <!-- <section class="hudRow">
+    <div class="hudCard">⭐ <span id="starCount">0</span></div>
+    <div class="hudCard">🎯 <span id="score">0</span></div>
+  </section> -->
+
+  <section class="progressWrap">
+    <div class="progressBar">
+      <div class="progressFill" id="progressFill"></div>
+    </div>
+
+    <div class="progressCar" id="progressCar"><img style="margin-top: 8px;" src="./assets/level/car-red2.png" alt=""></div>
+    <div class="finishFlag">🏁</div>
+
+    <div class="progressLabel" id="progressLabel">
+      Journey Begins
+    </div>
+  </section>
+  
+  <section style="display: flex; align-items: center; justify-content: space-between;">
+    <div class="heartsRow" id="heartsRow">
+      <span class="heart" id="heart1">❤️</span>
+      <span class="heart" id="heart2">❤️</span>
+      <span class="heart" id="heart3">❤️</span>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+    <div style="max-width: fit-content;" class="hudCard">⏱ <span id="timer">0:00</span></div>
+  </section>
+
+  <main class="playArea">
+    <section class="boardArea" id="boardArea"></section>
+    <section class="trayArea" id="trayArea"></section>
+    <div class="previewStrip" id="previewStrip"></div>
+    
+  </main>
+
+  <footer class="actionRow">
+    <button class="mainBtn" id="checkBtn">✓ Check</button>
+    <button class="mainBtn alt" id="resetBtn">↺ Reset</button>
+    <button class="mainBtn next" id="nextBtn" disabled>Next ▶</button>
+  </footer>
+
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div class="overlay" id="pauseOverlay">
+  <div class="overlayCard">
+    <div class="overlayIcon">⏸</div>
+    <h2>Paused</h2>
+    <p>Take a breather!</p>
+    <button class="mainBtn" id="resumeBtn">▶ Resume</button>
+    <button class="mainBtn alt" id="restartBtn">↺ Restart</button>
+    <button class="mainBtn ghost" id="mapBtn">🗺 Back to Map</button>
+  </div>
+</div>
+
+<!-- HINT OVERLAY -->
+<div class="overlay" id="hintOverlay">
+  <div class="overlayCard">
+    <div class="overlayIcon">💡</div>
+    <h2>Hint</h2>
+    <p id="hintText">—</p>
+    <button class="mainBtn" id="hintCloseBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="overlay" id="successOverlay">
+  <div id="failOverlay"></div>
+  <canvas id="confettiCanvas"></canvas>
+  <div class="overlayCard">
+    <div class="overlayIcon">🎉</div>
+    <h2>Level Complete!</h2>
+    <div class="starRow" id="starRow">☆☆☆</div>
+    <p id="successTime">Time: 0:00</p>
+    <button class="mainBtn next" id="successNextBtn">Next Level ▶</button>
+    <button class="mainBtn alt" id="successRestartBtn">↺ Play Again</button>
+    <button class="mainBtn ghost" id="successMapBtn">🗺 Map</button>
+  </div>
+</div>
+
+<script type="module" src="mechanics/worldLevels.js"></script>
+</body>
+</html>

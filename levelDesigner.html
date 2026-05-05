@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Level Editor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg:          #fdf6ee;
+    --card:        #ffffff;
+    --slot-bg:     #fce8d8;
+    --slot-border: #e8c4aa;
+    --op-bg:       #f0ebe4;
+    --op-text:     #7a6a5a;
+    --ans-bg:      #d4f0e8;
+    --ans-border:  #8ecfba;
+    --ans-text:    #2a7a60;
+    --text:        #3a2e26;
+    --muted:       #a89888;
+    --accent:      #3dbf9a;
+    --danger:      #e87060;
+    --shadow:      0 4px 20px rgba(60,40,20,.09);
+    --step1-bg:    #fff3e0;
+    --step1-border:#f4a94a;
+    --step1-text:  #a05c10;
+    --step2-bg:    #e8f4ff;
+    --step2-border:#5aabf0;
+    --step2-text:  #1a5a9a;
+    --sel-bg:      #dceffe;
+    --sel-border:  #3a8fdf;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 16px 60px;
+  }
+
+  h1 { font-size: 1.8rem; font-weight: 900; letter-spacing: -.5px; margin-bottom: 2px; }
+  .subtitle { color: var(--muted); font-size: .88rem; margin-bottom: 20px; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    background: var(--card); border-radius: 16px; padding: 14px 20px;
+    box-shadow: var(--shadow); margin-bottom: 20px;
+    width: 100%; max-width: 940px;
+  }
+  .toolbar label { font-size: .75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .tnum { width: 58px; padding: 6px 10px; border: 2px solid #e8ddd4; border-radius: 10px; font-family: inherit; font-size: .9rem; font-weight: 800; background: var(--bg); color: var(--text); outline: none; }
+  .tnum:focus { border-color: var(--accent); }
+  .ttext { width: 170px; padding: 6px 12px; border: 2px solid #e8ddd4; border-radius: 10px; font-family: inherit; font-size: .9rem; font-weight: 700; background: var(--bg); color: var(--text); outline: none; }
+  .ttext:focus { border-color: var(--accent); }
+  .sep { width: 1px; height: 28px; background: #e8ddd4; }
+
+  .btn { padding: 8px 18px; border: none; border-radius: 11px; font-family: inherit; font-size: .86rem; font-weight: 800; cursor: pointer; transition: all .12s; }
+  .btn-primary  { background: var(--accent); color: #fff; }
+  .btn-primary:hover  { background: #2da888; transform: translateY(-1px); }
+  .btn-danger   { background: #fce8e4; color: var(--danger); }
+  .btn-danger:hover   { background: #f8d0c8; }
+  .btn-outline  { background: #fff; color: var(--text); border: 2px solid #e8ddd4; }
+  .btn-outline:hover  { border-color: var(--accent); color: var(--accent); }
+  .btn-dark     { background: #2e241c; color: #fff; }
+  .btn-dark:hover     { background: #1c150e; }
+
+  .main { display: flex; gap: 20px; align-items: flex-start; width: 100%; max-width: 940px; }
+
+  .grid-wrap { background: var(--card); border-radius: 20px; padding: 22px; box-shadow: var(--shadow); flex-shrink: 0; }
+  #grid { display: grid; gap: 5px; }
+
+  .cell {
+    width: 64px; height: 64px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; font-weight: 800;
+    cursor: pointer; position: relative;
+    transition: all .12s; user-select: none;
+    border: 2.5px solid transparent;
+  }
+
+  .c-empty  { background: transparent; border: 2.5px dashed #ddd2c6; color: transparent; }
+  .c-empty:hover { border-color: var(--accent); background: #f0faf6; }
+
+  .c-slot   { background: var(--slot-bg); border-color: var(--slot-border); color: var(--text); }
+  .c-op     { background: var(--op-bg);   border-color: #ddd5cc; color: var(--op-text); font-size: 1.4rem; }
+  .c-answer { background: var(--ans-bg);  border-color: var(--ans-border); color: var(--ans-text); }
+
+  .c-eq-origin { background: var(--step1-bg) !important; border-color: var(--step1-border) !important; color: var(--step1-text) !important; animation: pulseOrange .8s ease-in-out infinite alternate; }
+  .c-adj-hint  { background: #fffbe8 !important; border: 2.5px solid var(--step1-border) !important; border-style: dashed !important; animation: pulseOrange .8s ease-in-out infinite alternate; }
+
+  .c-sel { background: var(--sel-bg) !important; border-color: var(--sel-border) !important; color: var(--step2-text) !important; }
+  .c-eq-selectable { background: #f4f9ff !important; border-color: #a8d0f0 !important; }
+  .c-eq-selectable:hover { background: var(--sel-bg) !important; border-color: var(--sel-border) !important; }
+
+  @keyframes pulseOrange { from { opacity: .65; } to { opacity: 1; } }
+
+  .cell-lbl { position: absolute; top: 3px; left: 5px; font-size: .52rem; font-weight: 900; color: var(--muted); text-transform: uppercase; }
+
+  #ctxMenu {
+    position: fixed; background: var(--card); border-radius: 14px;
+    box-shadow: 0 8px 36px rgba(60,40,20,.2); padding: 8px;
+    z-index: 9999; display: none; min-width: 150px;
+  }
+  #ctxMenu.open { display: block; }
+  .ctx-title { font-size: .68rem; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; padding: 4px 8px 8px; }
+  .ctx-item  { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: .9rem; transition: background .1s; }
+  .ctx-item:hover { background: #f5ede4; }
+  .ctx-icon  { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; background: var(--op-bg); color: var(--op-text); }
+  .ctx-sep   { height: 1px; background: #f0e8e0; margin: 5px 0; }
+
+  #statusBar {
+    width: 100%; max-width: 940px; padding: 10px 18px; border-radius: 12px;
+    font-size: .88rem; font-weight: 700; margin-bottom: 14px; display: none;
+    align-items: center; gap: 10px;
+  }
+  #statusBar.show { display: flex; }
+  #statusBar.info { background: var(--step2-bg); color: var(--step2-text); border: 2px solid var(--step2-border); }
+  #statusBar.warn { background: var(--step1-bg); color: var(--step1-text); border: 2px solid var(--step1-border); }
+  #statusBar.ok   { background: #e8faf4; color: #1a7a50; border: 2px solid var(--ans-border); }
+  #statusBar.err  { background: #fdecea; color: #b03020; border: 2px solid #e8a09a; }
+  .status-cancel { margin-left: auto; cursor: pointer; font-size: .8rem; opacity: .7; }
+  .status-cancel:hover { opacity: 1; }
+
+  .side { flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 210px; }
+  .pcard { background: var(--card); border-radius: 16px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .ptitle { font-size: .72rem; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; }
+
+  .eq-list { display: flex; flex-direction: column; gap: 6px; }
+  .eq-item {
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    background: #f8f2ec; border-radius: 10px; padding: 8px 10px;
+    font-family: 'Space Mono', monospace; font-size: .8rem; font-weight: 700;
+  }
+  .eq-del { margin-left: auto; cursor: pointer; color: var(--danger); font-size: .85rem; opacity: .6; }
+  .eq-del:hover { opacity: 1; }
+  .eq-empty { color: var(--muted); font-size: .84rem; font-style: italic; }
+
+  .tiles-wrap { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tile-chip { background: var(--slot-bg); border: 2px solid var(--slot-border); border-radius: 9px; padding: 5px 11px; font-weight: 900; font-size: .92rem; display: flex; align-items: center; gap: 5px; }
+  .tile-badge { background: var(--ans-bg); color: var(--ans-text); border-radius: 6px; padding: 1px 6px; font-size: .75rem; font-weight: 900; }
+
+  textarea.hint-ta { width: 100%; padding: 10px 13px; border: 2px solid #e8ddd4; border-radius: 11px; font-family: inherit; font-size: .88rem; background: var(--bg); color: var(--text); outline: none; resize: vertical; min-height: 60px; }
+  textarea.hint-ta:focus { border-color: var(--accent); }
+
+  #exportModal { display: none; position: fixed; inset: 0; background: rgba(40,28,18,.45); z-index: 9998; align-items: center; justify-content: center; }
+  #exportModal.open { display: flex; }
+  .modal-box { background: var(--card); border-radius: 20px; padding: 26px; width: min(720px, 95vw); max-height: 88vh; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 16px 60px rgba(40,28,18,.25); }
+  .modal-title { font-size: 1.15rem; font-weight: 900; }
+  #exportCode { font-family: 'Space Mono', monospace; font-size: .77rem; background: #1a120c; color: #e8d8c0; border-radius: 12px; padding: 16px; overflow: auto; white-space: pre; border: none; outline: none; min-height: 180px; max-height: 420px; resize: none; flex: 1; }
+  .modal-foot { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .info-row { margin-top: 10px; display: flex; gap: 18px; font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .info-row b { color: var(--text); }
+</style>
+</head>
+<body>
+
+<h1>🧮 Level Editor</h1>
+<p class="subtitle">Build puzzle levels visually — left-click to place numbers, right-click for operators</p>
+
+<div class="toolbar">
+  <label>Rows</label>
+  <input class="tnum" id="inRows" type="number" value="5" min="2" max="10">
+  <label>Cols</label>
+  <input class="tnum" id="inCols" type="number" value="5" min="2" max="10">
+  <button class="btn btn-outline" onclick="buildGrid()">Rebuild Grid</button>
+  <div class="sep"></div>
+  <label>Level ID</label>
+  <input class="tnum" id="inId" type="number" value="5" min="1">
+  <label>Name</label>
+  <input class="ttext" id="inName" type="text" value="New Level" placeholder="Level name">
+  <div class="sep"></div>
+  <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+  <button class="btn btn-dark" onclick="openExport()">⬇ Export JS</button>
+</div>
+
+<div id="statusBar">
+  <span id="statusMsg"></span>
+  <span class="status-cancel" id="statusCancel" onclick="cancelFlow()">✕ Cancel</span>
+</div>
+
+<div class="main">
+  <div>
+    <div class="grid-wrap">
+      <div id="grid"></div>
+      <div class="info-row">
+        <span>🖱 <b>Left-click</b>: place number</span>
+        <span>🖱 <b>Right-click</b>: operator / =</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="pcard">
+      <div class="ptitle">Equations</div>
+      <div id="eqList" class="eq-list"><div class="eq-empty">No equations yet.</div></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">Tiles (auto-generated)</div>
+      <div id="tilesList" class="tiles-wrap"><span class="eq-empty">No slots yet</span></div>
+    </div>
+    <div class="pcard">
+      <div class="ptitle">Hint</div>
+      <textarea class="hint-ta" id="inHint" placeholder="Hint shown to the player…"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- context menu -->
+<div id="ctxMenu">
+  <div class="ctx-title">Set cell type</div>
+  <div class="ctx-item" onclick="ctxOp('+')">  <span class="ctx-icon">+</span> Add</div>
+  <div class="ctx-item" onclick="ctxOp('-')">  <span class="ctx-icon">−</span> Subtract</div>
+  <div class="ctx-item" onclick="ctxOp('×')">  <span class="ctx-icon">×</span> Multiply</div>
+  <div class="ctx-item" onclick="ctxOp('÷')">  <span class="ctx-icon">÷</span> Divide</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxEquals()" style="color:var(--ans-text)">
+    <span class="ctx-icon" style="background:var(--ans-bg);color:var(--ans-text)">=</span> Equals
+  </div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxClear()" style="color:var(--danger)">
+    <span class="ctx-icon" style="background:#fce8e4;color:var(--danger)">✕</span> Clear cell
+  </div>
+</div>
+
+<!-- export modal -->
+<div id="exportModal">
+  <div class="modal-box">
+    <div class="modal-title">Export Level JS</div>
+    <textarea id="exportCode" spellcheck="false" readonly></textarea>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeExport()">Close</button>
+      <button class="btn btn-primary" onclick="copyExport()">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- number input modal -->
+<div id="numModal" style="display:none;position:fixed;inset:0;background:rgba(40,28,18,.4);z-index:9997;align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:18px;padding:24px 28px;box-shadow:0 12px 48px rgba(40,28,18,.22);display:flex;flex-direction:column;gap:14px;min-width:240px">
+    <div style="font-size:1rem;font-weight:900" id="numTitle">Enter a number for this slot</div>
+    <input id="numInput" type="number" min="1" max="99" class="tnum" style="width:100%;font-size:1.2rem;text-align:center"
+      onkeydown="if(event.key==='Enter')confirmNum()">
+    <div style="font-size:.8rem;color:var(--muted)">Leave blank → player-fillable slot (no fixed value)</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" style="flex:1" onclick="cancelNum()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" onclick="confirmNum()">Place</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   STATE
+================================================================ */
+let ROWS = 5, COLS = 5;
+let cellData = [];
+
+let equations  = [];
+let eqCounter  = 0;
+let slotKeyIdx = 0;
+const KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+let ctxR = -1, ctxC = -1;
+
+let flowState    = 'IDLE';
+let flowEqR      = -1, flowEqC   = -1;
+let flowAnsR     = -1, flowAnsC  = -1;
+let flowSelCells = [];
+
+let numModalCb = null;
+
+/* ================================================================
+   INIT
+================================================================ */
+window.addEventListener('DOMContentLoaded', buildGrid);
+
+function buildGrid() {
+  ROWS = parseInt(document.getElementById('inRows').value)  || 5;
+  COLS = parseInt(document.getElementById('inCols').value)  || 5;
+  cellData = [];
+  for (let r = 0; r < ROWS; r++) {
+    cellData[r] = [];
+    for (let c = 0; c < COLS; c++) cellData[r][c] = { type: 'empty' };
+  }
+  equations    = [];
+  eqCounter    = 0;
+  slotKeyIdx   = 0;
+  flowState    = 'IDLE';
+  flowSelCells = [];
+  render();
+  refreshSide();
+  hideStatus();
+}
+
+function clearAll() { buildGrid(); }
+
+/* ================================================================
+   RENDER
+================================================================ */
+function render() {
+  const grid = document.getElementById('grid');
+  grid.style.gridTemplateColumns = `repeat(${COLS}, 64px)`;
+  grid.style.gridTemplateRows    = `repeat(${ROWS}, 64px)`;
+  grid.innerHTML = '';
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const d    = cellData[r][c];
+      const cell = document.createElement('div');
+      cell.className = 'cell ' + cellClass(r, c);
+      cell.dataset.r = r; cell.dataset.c = c;
+
+      if (d.type === 'slot') {
+        const lbl = document.createElement('span');
+        lbl.className = 'cell-lbl';
+        lbl.textContent = d.key;
+        cell.appendChild(lbl);
+        cell.appendChild(document.createTextNode(d.value !== undefined ? d.value : '?'));
+      } else if (d.type === 'op' || d.type === 'answer') {
+        cell.textContent = d.value;
+      }
+
+      cell.addEventListener('click',       e => onCellClick(r, c, e));
+      cell.addEventListener('contextmenu', e => onRightClick(r, c, e));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function cellClass(r, c) {
+  const d = cellData[r][c];
+
+  if (flowState === 'STEP1_PICK_ANSWER') {
+    if (r === flowEqR && c === flowEqC) return 'c-eq-origin';
+    if (isAdj(r, c, flowEqR, flowEqC) && d.type === 'empty') return 'c-adj-hint';
+  }
+
+  if (flowState === 'STEP2_SELECT_EQ') {
+    if (flowSelCells.some(s => s.r === r && s.c === c)) return 'c-sel';
+    if (isSelectableForEq(r, c)) return 'c-eq-selectable';
+  }
+
+  switch (d.type) {
+    case 'slot':   return 'c-slot';
+    case 'op':     return 'c-op';
+    case 'answer': return 'c-answer';
+    default:       return 'c-empty';
+  }
+}
+
+function isAdj(r1, c1, r2, c2) {
+  return (Math.abs(r1-r2)===1 && c1===c2) || (Math.abs(c1-c2)===1 && r1===r2);
+}
+
+/* ================================================================
+   CELL CLICK
+================================================================ */
+function onCellClick(r, c, e) {
+  closeCtx();
+
+  if (flowState === 'STEP1_PICK_ANSWER') {
+    if (r === flowEqR && c === flowEqC) { cancelFlow(); return; }
+    if (isAdj(r, c, flowEqR, flowEqC) && cellData[r][c].type === 'empty') {
+      flowAnsR = r; flowAnsC = c;
+      flowState = 'STEP2_SELECT_EQ';
+      flowSelCells = [];
+      render();
+      showStatus('info', '📐 Step 2 — Click cells to select your equation (left-to-right or top-to-bottom). Hit ✓ Confirm below when done.');
+      addConfirmBtn();
+      return;
+    }
+    showStatus('warn', '⚠ Pick an adjacent empty cell for the answer output.');
+    return;
+  }
+
+  if (flowState === 'STEP2_SELECT_EQ') {
+    const d = cellData[r][c];
+    if ((d.type === 'slot' || d.type === 'answer' || d.type === 'op') && !(r === flowEqR && c === flowEqC) && !(r === flowAnsR && c === flowAnsC)) {
+      const idx = flowSelCells.findIndex(s => s.r===r && s.c===c);
+      if (idx >= 0) flowSelCells.splice(idx, 1);
+      else flowSelCells.push({ r, c });
+      render();
+    }
+    return;
+  }
+
+  openNumModal(r, c);
+}
+
+function isSelectableForEq(r, c) {
+  const d = cellData[r][c];
+  return d.type === 'slot' || d.type === 'answer' || (d.type === 'op' && d.value !== '=');
+}
+
+/* ================================================================
+   RIGHT CLICK
+================================================================ */
+function onRightClick(r, c, e) {
+  e.preventDefault();
+  if (flowState !== 'IDLE') return;
+  ctxR = r; ctxC = c;
+  const m = document.getElementById('ctxMenu');
+  m.style.left = e.clientX + 'px';
+  m.style.top  = e.clientY + 'px';
+  m.classList.add('open');
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('#ctxMenu')) closeCtx(); });
+function closeCtx() { document.getElementById('ctxMenu').classList.remove('open'); }
+
+function ctxOp(op) {
+  closeCtx();
+  if (ctxR < 0) return;
+  cellData[ctxR][ctxC] = { type: 'op', value: op };
+  render(); refreshSide();
+}
+
+function ctxClear() {
+  closeCtx();
+  if (ctxR < 0) return;
+  cellData[ctxR][ctxC] = { type: 'empty' };
+  equations = equations.filter(eq => {
+    const ref   = eq.tokens.some(t => t.r === ctxR && t.c === ctxC);
+    const isAns = (eq.ansR === ctxR && eq.ansC === ctxC);
+    return !ref && !isAns;
+  });
+  render(); refreshSide();
+}
+
+function ctxEquals() {
+  closeCtx();
+  if (ctxR < 0) return;
+  cellData[ctxR][ctxC] = { type: 'op', value: '=' };
+  flowEqR = ctxR; flowEqC = ctxC;
+  flowState = 'STEP1_PICK_ANSWER';
+  render();
+  showStatus('warn', '🟠 Step 1 — Click an adjacent empty cell where the answer will appear.');
+}
+
+/* ================================================================
+   STEP 2 — CONFIRM EQUATION
+================================================================ */
+function addConfirmBtn() {
+  removeConfirmBtn();
+  const bar = document.getElementById('statusBar');
+  const btn = document.createElement('button');
+  btn.id = 'confirmEqBtn';
+  btn.className = 'btn btn-primary';
+  btn.style.cssText = 'margin-left:8px;padding:6px 16px;font-size:.84rem';
+  btn.textContent = '✓ Confirm Equation';
+  btn.onclick = confirmEquation;
+  bar.insertBefore(btn, document.getElementById('statusCancel'));
+}
+function removeConfirmBtn() {
+  const b = document.getElementById('confirmEqBtn');
+  if (b) b.remove();
+}
+
+function confirmEquation() {
+  if (flowSelCells.length < 1) {
+    showStatus('err', '❌ Select at least one slot/operator cell before confirming.'); return;
+  }
+
+  const sorted = sortCells(flowSelCells);
+  if (!sorted) {
+    showStatus('err', '❌ Cells must be in a single row or column (no diagonals or gaps).'); return;
+  }
+
+  const validation = validateEqCells(sorted);
+  if (!validation.ok) {
+    showStatus('err', '❌ ' + validation.msg); return;
+  }
+
+  const ans = computeEq(sorted);
+  if (ans === null) {
+    showStatus('err', '❌ Could not compute — make sure all slots have a value.'); return;
+  }
+
+  cellData[flowAnsR][flowAnsC] = { type: 'answer', value: ans };
+
+  const tokens = sorted.map(s => {
+    const d = cellData[s.r][s.c];
+    if (d.type === 'slot') {
+      return { r: s.r, c: s.c, type: 'slot', key: d.key, value: d.value };
+    } else if (d.type === 'answer') {
+      return { r: s.r, c: s.c, type: 'slot', key: `[${d.value}]`, value: d.value, isAnswer: true };
+    } else {
+      return { r: s.r, c: s.c, type: 'op', opVal: d.value };
+    }
+  });
+
+  equations.push({
+    id: eqCounter++,
+    tokens,
+    eqR: flowEqR, eqC: flowEqC,
+    ansR: flowAnsR, ansC: flowAnsC,
+    answer: ans
+  });
+
+  flowState    = 'IDLE';
+  flowSelCells = [];
+  removeConfirmBtn();
+  render(); refreshSide();
+  showStatus('ok', `✅ Equation registered! Answer = ${ans}`, true);
+}
+
+function sortCells(cells) {
+  const rows = [...new Set(cells.map(c => c.r))];
+  const cols = [...new Set(cells.map(c => c.c))];
+  if (rows.length === 1) return [...cells].sort((a, b) => a.c - b.c);
+  if (cols.length === 1) return [...cells].sort((a, b) => a.r - b.r);
+  return null;
+}
+
+function validateEqCells(sorted) {
+  const rows = sorted.map(s => s.r);
+  const cols = sorted.map(s => s.c);
+  const isH  = rows.every(r => r === rows[0]);
+
+  if (isH) {
+    for (let i = 1; i < cols.length; i++)
+      if (cols[i] !== cols[i-1] + 1) return { ok: false, msg: 'Cells must be contiguous (no gaps in row).' };
+  } else {
+    for (let i = 1; i < rows.length; i++)
+      if (rows[i] !== rows[i-1] + 1) return { ok: false, msg: 'Cells must be contiguous (no gaps in column).' };
+  }
+
+  const first = cellData[sorted[0].r][sorted[0].c];
+  const last  = cellData[sorted[sorted.length-1].r][sorted[sorted.length-1].c];
+  if (first.type !== 'slot' && first.type !== 'answer') return { ok: false, msg: 'Equation must start with a number slot.' };
+  if (last.type  !== 'slot' && last.type  !== 'answer') return { ok: false, msg: 'Equation must end with a number slot.'   };
+
+  for (let i = 0; i < sorted.length; i++) {
+    const d    = cellData[sorted[i].r][sorted[i].c];
+    const isNum = d.type === 'slot' || d.type === 'answer';
+    if (i % 2 === 0 && !isNum)       return { ok: false, msg: `Cell ${i+1} should be a number slot.`   };
+    if (i % 2 === 1 && d.type !== 'op') return { ok: false, msg: `Cell ${i+1} should be an operator.` };
+  }
+
+  return { ok: true };
+}
+
+/* ================================================================
+   COMPUTE — PROPER BODMAS / PEMDAS
+   Pass 1 : resolve × and ÷  (higher precedence, left-to-right)
+   Pass 2 : resolve + and −  (lower  precedence, left-to-right)
+================================================================ */
+function computeEq(sorted) {
+  try {
+    // Build flat token array: numbers and normalised operator strings
+    const tokens = sorted.map(s => {
+      const d = cellData[s.r][s.c];
+      if (d.type === 'slot') {
+        if (d.value === undefined) return null;
+        return Number(d.value);
+      }
+      if (d.type === 'answer') return Number(d.value);
+      // Normalise operator symbols
+      if (d.value === '×' || d.value === '*') return '*';
+      if (d.value === '÷' || d.value === '/') return '/';
+      return d.value; // '+' or '-'
+    });
+
+    if (tokens.includes(null)) return null;
+
+    // ── Pass 1: × and ÷ (higher precedence) ──
+    let t = [...tokens];
+    let i = 1;
+    while (i < t.length) {
+      const op = t[i];
+      if (op === '*' || op === '/') {
+        const left  = Number(t[i - 1]);
+        const right = Number(t[i + 1]);
+        if (op === '/' && right === 0) return null; // division by zero
+        const val = op === '*' ? left * right : left / right;
+        // Collapse (left, op, right) → val
+        t.splice(i - 1, 3, val);
+        // Don't advance i — the merged value is now at i-1
+      } else {
+        i += 2;
+      }
+    }
+
+    // ── Pass 2: + and − (lower precedence, left-to-right) ──
+    let result = Number(t[0]);
+    for (let j = 1; j < t.length; j += 2) {
+      const op  = t[j];
+      const num = Number(t[j + 1]);
+      if (op === '+') result += num;
+      if (op === '-') result -= num;
+    }
+
+    return Math.round(result * 10000) / 10000;
+  } catch {
+    return null;
+  }
+}
+
+/* ================================================================
+   CANCEL FLOW
+================================================================ */
+function cancelFlow() {
+  if (flowState !== 'IDLE' && flowEqR >= 0) {
+    cellData[flowEqR][flowEqC] = { type: 'empty' };
+  }
+  flowState    = 'IDLE';
+  flowSelCells = [];
+  removeConfirmBtn();
+  hideStatus();
+  render();
+}
+
+/* ================================================================
+   NUMBER MODAL
+================================================================ */
+function openNumModal(r, c) {
+  const d = cellData[r][c];
+  if (d.type === 'op' || d.type === 'answer') return;
+  document.getElementById('numTitle').textContent = 'Enter a value for this slot';
+  const inp = document.getElementById('numInput');
+  inp.value = (d.type === 'slot' && d.value !== undefined) ? d.value : '';
+  document.getElementById('numModal').style.display = 'flex';
+  setTimeout(() => inp.focus(), 50);
+  numModalCb = (val) => {
+    if (val === null) return;
+    const existing = cellData[r][c];
+    if (val === '') {
+      if (existing.type !== 'slot') cellData[r][c] = { type: 'slot', key: nextKey(), value: undefined };
+      else cellData[r][c].value = undefined;
+    } else {
+      const n = parseFloat(val);
+      if (isNaN(n)) return;
+      if (existing.type === 'slot') cellData[r][c].value = n;
+      else cellData[r][c] = { type: 'slot', key: nextKey(), value: n };
+    }
+    render(); refreshSide();
+  };
+}
+function confirmNum() { closeNumModal(document.getElementById('numInput').value.trim()); }
+function cancelNum()  { closeNumModal(null); }
+function closeNumModal(val) {
+  document.getElementById('numModal').style.display = 'none';
+  if (numModalCb) { numModalCb(val); numModalCb = null; }
+}
+document.getElementById('numModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('numModal')) cancelNum();
+});
+
+function nextKey() { return KEYS[slotKeyIdx++ % KEYS.length]; }
+
+/* ================================================================
+   SIDE PANEL
+================================================================ */
+function refreshSide() {
+  const el = document.getElementById('eqList');
+  if (!equations.length) {
+    el.innerHTML = '<div class="eq-empty">No equations yet. Place numbers &amp; operators, then right-click =</div>';
+  } else {
+    el.innerHTML = equations.map((eq, i) => {
+      const tstr = eq.tokens.map(t =>
+        t.type === 'slot'
+          ? `<span style="color:#c07030">${t.key}${t.value!==undefined?'('+t.value+')':''}</span>`
+          : `<span style="color:var(--op-text)">${t.opVal}</span>`
+      ).join(' ');
+      return `<div class="eq-item">${tstr} <span style="color:var(--op-text)"> = </span><span style="color:var(--ans-text);font-weight:900">${eq.answer}</span>
+        <span class="eq-del" title="Remove equation" onclick="removeEq(${i})">✕</span></div>`;
+    }).join('');
+  }
+
+  const tl = document.getElementById('tilesList');
+  const counts = {};
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      const d = cellData[r][c];
+      if (d.type === 'slot' && d.value !== undefined)
+        counts[d.value] = (counts[d.value]||0) + 1;
+    }
+  const ks = Object.keys(counts).sort((a,b)=>a-b);
+  tl.innerHTML = ks.length
+    ? ks.map(v => `<div class="tile-chip">${v}<span class="tile-badge">×${counts[v]}</span></div>`).join('')
+    : '<span class="eq-empty">No slot values yet</span>';
+}
+
+function removeEq(i) {
+  const eq = equations[i];
+  cellData[eq.ansR][eq.ansC] = { type: 'empty' };
+  cellData[eq.eqR][eq.eqC]  = { type: 'empty' };
+  equations.splice(i, 1);
+  render(); refreshSide();
+}
+
+/* ================================================================
+   STATUS BAR
+================================================================ */
+function showStatus(type, msg, autoHide) {
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusMsg').innerHTML = msg;
+  bar.className = 'show ' + type;
+  if (autoHide) setTimeout(hideStatus, 3000);
+}
+function hideStatus() {
+  removeConfirmBtn();
+  document.getElementById('statusBar').className = '';
+}
+
+/* ================================================================
+   EXPORT
+================================================================ */
+function openExport() {
+  document.getElementById('exportCode').value = generateCode();
+  document.getElementById('exportModal').classList.add('open');
+}
+function closeExport() { document.getElementById('exportModal').classList.remove('open'); }
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('exportCode').value)
+    .then(() => showStatus('ok', '✅ Copied to clipboard!', true));
+}
+document.getElementById('exportModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('exportModal')) closeExport();
+});
+
+function generateCode() {
+  const id   = parseInt(document.getElementById('inId').value) || 1;
+  const name = document.getElementById('inName').value.trim() || 'New Level';
+  const hint = document.getElementById('inHint').value.trim()  || 'Think carefully.';
+  const size = Math.max(ROWS, COLS);
+
+  const cellLines = [];
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      const d = cellData[r][c];
+      const k = `"${r+1},${c+1}"`;
+      if      (d.type === 'slot')   cellLines.push(`      ${k}: { type: "slot",   key: "${d.key}" }`);
+      else if (d.type === 'op')     cellLines.push(`      ${k}: { type: "op",     value: "${d.value}" }`);
+      else if (d.type === 'answer') cellLines.push(`      ${k}: { type: "answer", value: ${d.value} }`);
+    }
+
+  const eqLines = equations.map(eq => {
+    const toks = eq.tokens.map(t => t.type==='slot' ? `"${t.key}"` : `"${t.opVal}"`);
+    toks.push(`"="`, eq.answer);
+    return `      [${toks.join(', ')}]`;
+  });
+
+  const counts = {};
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++) {
+      const d = cellData[r][c];
+      if (d.type === 'slot' && d.value !== undefined)
+        counts[d.value] = (counts[d.value]||0) + 1;
+    }
+  const tileLines = Object.keys(counts).sort((a,b)=>a-b)
+    .map(v => `      { value: ${v}, count: ${counts[v]} }`);
+
+  return `  {
+    id: ${id},
+    name: "${name}",
+    size: ${size},
+
+    cells: {
+${cellLines.join(',\n')}
+    },
+
+    equations: [
+${eqLines.join(',\n')}
+    ],
+
+    tiles: [
+${tileLines.join(',\n')}
+    ],
+
+    hint: "${hint.replace(/"/g,'\\"')}"
+  }`;
+}
+</script>
+</body>
+</html>
