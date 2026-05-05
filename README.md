@@ -64,7 +64,7 @@ Learn step-by-step:
 🚗 A car moves forward as you complete each level.
 
 ---
-![Tutorial Level](https://github.com/AmitTamas/mathsTilesv1/blob/773f6757d83a46e94335ee458cbb4f85e2ea74a8/Screenshot%20From%202026-05-05%2015-24-22.png)
+![Tutorial Level](https://github.com/AmitTamas/mathsTilesv1/blob/531f2fddb6f88410e7885fc1572b4f017c197ff8/Screenshot%20From%202026-05-05%2015-24-50.png)
 ### 🗺️ 2. World Map
 
 * Animated **driving car**
